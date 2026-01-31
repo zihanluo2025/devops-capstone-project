@@ -4,7 +4,7 @@
 
 ### Details and Assumptions
 
-    * [document what you know]
+    * [document what you 111know]
 
 ### Acceptance Criteria
 
