@@ -5,6 +5,7 @@ Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
   coverage report -m
 """
+
 import os
 import logging
 from unittest import TestCase
@@ -151,5 +152,3 @@ class TestAccountService(TestCase):
 
         self.assertIn("Account Bob", result)
         self.assertIn("id=[1]", result)
-    
-
