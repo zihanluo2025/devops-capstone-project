@@ -13,12 +13,17 @@ from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db, DataValidationError
 from service.routes import app
+from service import talisman
+
+
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 BASE_URL = "/accounts"
+HTTPS_ENVIRON = {"wsgi.url_scheme": "https"}
+
 
 
 ######################################################################
@@ -26,6 +31,7 @@ BASE_URL = "/accounts"
 ######################################################################
 class TestAccountService(TestCase):
     """Account Service Tests"""
+    talisman.force_https = False
 
     @classmethod
     def setUpClass(cls):
@@ -152,3 +158,19 @@ class TestAccountService(TestCase):
 
         self.assertIn("Account Bob", result)
         self.assertIn("id=[1]", result)
+
+    def test_security_headers(self):
+        """It should return security headers"""
+        response = self.client.get("/", environ_overrides=HTTPS_ENVIRON)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        headers = {
+            "X-Frame-Options": "SAMEORIGIN",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "default-src 'self'; object-src 'none'",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+        }
+
+        for key, value in headers.items():
+            self.assertEqual(response.headers.get(key), value)
+
