@@ -12,6 +12,8 @@ from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db, DataValidationError
 from service.routes import app
+from tests.factories import AccountFactory
+
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
@@ -151,5 +153,51 @@ class TestAccountService(TestCase):
 
         self.assertIn("Account Bob", result)
         self.assertIn("id=[1]", result)
-    
 
+
+
+
+
+
+    def test_update_account(self):
+        """It should Update an existing Account"""
+        account = AccountFactory()
+        resp = self.client.post(BASE_URL, json=account.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        data = resp.get_json()
+        account_id = data["id"]
+
+        updated = account.serialize()
+        updated["name"] = "Updated Name"
+        resp = self.client.put(f"{BASE_URL}/{account_id}", json=updated)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.get_json()["name"], "Updated Name")
+
+
+    def test_update_account_not_found(self):
+        """It should not Update an Account that is not found"""
+        account = AccountFactory()
+        resp = self.client.put(f"{BASE_URL}/0", json=account.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+
+    def test_delete_account(self):
+        """It should Delete an Account"""
+        account = AccountFactory()
+        resp = self.client.post(BASE_URL, json=account.serialize())
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        account_id = resp.get_json()["id"]
+
+        resp = self.client.delete(f"{BASE_URL}/{account_id}")
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+
+    def test_delete_account_not_found(self):
+        """It should not error when deleting an Account that does not exist"""
+        resp = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_method_not_allowed(self):
+        """It should not allow an illegal method call"""
+        resp = self.client.delete(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
