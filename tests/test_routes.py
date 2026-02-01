@@ -11,10 +11,9 @@ import logging
 from unittest import TestCase
 from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
-from service.models import db, Account, init_db, DataValidationError
+from service.models import db, Account, init_db
 from service.routes import app
 from service import talisman
-
 
 
 DATABASE_URI = os.getenv(
@@ -25,12 +24,12 @@ BASE_URL = "/accounts"
 HTTPS_ENVIRON = {"wsgi.url_scheme": "https"}
 
 
-
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
 class TestAccountService(TestCase):
     """Account Service Tests"""
+
     talisman.force_https = False
 
     @classmethod
@@ -173,4 +172,3 @@ class TestAccountService(TestCase):
 
         for key, value in headers.items():
             self.assertEqual(response.headers.get(key), value)
-
